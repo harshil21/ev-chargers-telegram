@@ -36,7 +36,10 @@ async def get_chargers(latitude: float, longitude: float) -> list[dict]:
     """Check if the chargers are already stored in cache, if not, query the API."""
 
     cached_chargers = await check_cache(latitude, longitude)
-    if len(cached_chargers) <= 5:
+    distances = [distance_in_km((latitude, longitude), (i["lat"], i["lng"])) for i in cached_chargers]
+
+    # When should we query for new chargers? if all chargers are more than 7km away.
+    if all(distance >= 7 for distance in distances):
         chargers = await query_chargers(latitude, longitude)
         chargers_filtered = await save_chargers_to_cache(chargers)  # new chargers that are not in cache
         return chargers_filtered

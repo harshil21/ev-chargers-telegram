@@ -1,7 +1,7 @@
 # Authentication related strings
 
 auth_msg = "You must be authenticated to use this bot. Please enter your credentials using " \
-           "<code>/auth <username> <password></code>"
+           "<code>/auth username password</code>"
 
 invalid_auth_msg = "Invalid credentials specified. Please use as <code>/auth username password </code>."
 

@@ -101,6 +101,8 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # else just update the list of chargers by editing reply markup
         markup = await generate_markup(all_chargers, location)
         chat_id, message_id = context.user_data["editing_ids"]
+        if markup == update.effective_message.reply_markup:
+            return
         msg = await context.bot.edit_message_reply_markup(chat_id, message_id, reply_markup=markup)
         context.user_data["editing_ids"] = (msg.chat_id, msg.message_id)
 
