@@ -1,8 +1,9 @@
-import asyncio
+import datetime as dtm
 import json
 import httpx
 
 from pathlib import Path
+from telegram.ext import ContextTypes
 
 from api.distance_calc import distance_in_km
 
@@ -19,7 +20,7 @@ api_key = Path("files/api_key.txt").read_text().strip()
 async def query_chargers(latitude: float, longitude: float):
     url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
     params = {
-        "keyword": "EV charging station",
+        "keyword": "Electric Vehicle charging station",
         "location": f"{latitude},{longitude}",
         "rankby": "distance",
         "key": api_key,
@@ -32,17 +33,23 @@ async def query_chargers(latitude: float, longitude: float):
     return resp.json()
 
 
-async def get_chargers(latitude: float, longitude: float) -> list[dict]:
+async def get_chargers(latitude: float, longitude: float, context: ContextTypes.DEFAULT_TYPE) -> list[dict]:
     """Check if the chargers are already stored in cache, if not, query the API."""
 
     cached_chargers = await check_cache(latitude, longitude)
     distances = [distance_in_km((latitude, longitude), (i["lat"], i["lng"])) for i in cached_chargers]
+    last_query = context.user_data.get("last_queried", dtm.datetime.now())
 
-    # When should we query for new chargers? if all chargers are more than 7km away.
-    if all(distance >= 7 for distance in distances):
+    # When should we query for new chargers? if all chargers are more than 7km away and the last query was more than 5 minutes ago
+    if (
+    bool(all(distance >= 7 for distance in distances) if distances else True)
+    and (last_query + dtm.timedelta(minutes=5)) <= dtm.datetime.now()
+    ):
         chargers = await query_chargers(latitude, longitude)
+        context.user_data['last_queried'] = dtm.datetime.now()
         chargers_filtered = await save_chargers_to_cache(chargers)  # new chargers that are not in cache
         return chargers_filtered
+
     print("chargers already in cache")
     return cached_chargers
 
@@ -98,6 +105,3 @@ async def check_cache(latitude: float, longitude: float, exact: bool = False) ->
 
     return closest_chargers
 
-
-# print(check_cache(25.3057, 55.3799))
-# print(asyncio.run(query_chargers(25.3057, 55.3799)))

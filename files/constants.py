@@ -31,3 +31,5 @@ new_chargers_near_you = "New chargers were found near you, the list above has be
 already_sharing_live_loc = "You are already sharing your live location. Please end the previous session before starting a new one."
 
 ended_sharing_live_loc = "You have ended sharing live location."
+
+MAPS_LINK = "https://www.google.com/maps/search/?api=1&query={lat},{lng}"
