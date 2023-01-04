@@ -10,4 +10,3 @@ async def help_cmd(update: Update, _: ContextTypes.DEFAULT_TYPE):
 
 async def start_cmd(update: Update, _: ContextTypes.DEFAULT_TYPE):
     await update.effective_message.reply_html(help_msg)
-
