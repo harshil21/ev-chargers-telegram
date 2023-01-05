@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "EV-chargers-telegram"
+version = "0.1.0"
+authors = ["Harshil Mehta <<>>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-telegram-bot = "^20.0"
+APScheduler = "^3.9.1"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
