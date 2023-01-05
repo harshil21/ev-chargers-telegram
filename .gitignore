@@ -1,5 +1,4 @@
 files/token.txt
 files/api_key.txt
-files/data.pickle
 .vscode/
 __pycache__/
