@@ -1,3 +1,4 @@
+import os
 import datetime as dtm
 import json
 import httpx
@@ -14,7 +15,14 @@ from files.constants import (
 )
 
 
-api_key = Path("files/api_key.txt").read_text().strip()
+def get_api_key():
+    token_file = Path("files/api_key.txt")  # for local testing
+
+    if not token_file.exists():  # For replit deploy
+        return os.environ.get("API_KEY")
+
+    return token_file.read_text().strip()
+
 
 # Query an API to get the list of electric charging stations nearby
 # for a given latitude and longitude. The chargers should be within
@@ -29,7 +37,7 @@ async def query_chargers(latitude: float, longitude: float):
         "keyword": "Electric Vehicle charging station",
         "location": f"{latitude},{longitude}",
         "rankby": "distance",
-        "key": api_key,
+        "key": get_api_key(),
     }
 
     async with httpx.AsyncClient() as client:
