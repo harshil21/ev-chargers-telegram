@@ -2,6 +2,7 @@ import os
 import datetime as dtm
 import json
 import httpx
+from typing import List, Union
 
 from pathlib import Path
 from telegram.ext import ContextTypes
@@ -49,7 +50,7 @@ async def query_chargers(latitude: float, longitude: float):
 
 async def get_chargers(
     latitude: float, longitude: float, context: ContextTypes.DEFAULT_TYPE
-) -> list[dict]:
+) -> List[dict]:
     """Check if the chargers are already stored in cache, if not, query the API."""
 
     cached_chargers = await check_cache(latitude, longitude)
@@ -105,7 +106,7 @@ async def save_chargers_to_cache(resp: dict) -> None:
 
 async def check_cache(
     latitude: float, longitude: float, exact: bool = False
-) -> bool | list:
+) -> Union[bool, list]:
     """Check if the chargers are already stored in cache, we check that
     by using the distance_in_km function from distance_calc.py. If the
     chargers are not within 10km, return False.

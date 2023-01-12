@@ -10,7 +10,6 @@ import logging
 import os
 from pathlib import Path
 
-from bot_funcs.auth import check_if_user_is_authenticated, authenticate_user
 from bot_funcs.user_location import handle_location, cmd_cleanup
 from bot_funcs.help import help_cmd, start_cmd
 
@@ -33,11 +32,6 @@ def get_token():
 def main():
     pp = PicklePersistence("files/data.pickle")
     app = Application.builder().token(get_token()).persistence(pp).build()
-
-    app.add_handler(CommandHandler("auth", authenticate_user), group=-1)
-    app.add_handler(
-        MessageHandler(filters.TEXT, check_if_user_is_authenticated), group=-1
-    )
 
     app.add_handler(CommandHandler("start", start_cmd))
     app.add_handler(CommandHandler("help", help_cmd))

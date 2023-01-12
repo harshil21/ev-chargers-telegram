@@ -2,6 +2,7 @@ import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, Location
 from telegram.ext import ContextTypes
 from telegram.error import BadRequest
+from typing import List
 
 from files.constants import (
     no_static_location_msg,
@@ -38,8 +39,12 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # rare case where user actually ended live location sharing, but somehow didn't have
         # horizontal_accuracy set (e.g. happens when you mock location)
         if jobs := context.job_queue.get_jobs_by_name(str(user_id)):
-            jobs[0].schedule_removal()  # Schedule job to be removed and start new one in 3 seconds
-            context.job_queue.run_once(cleanup, 3, user_id=user_id, name=str(user_id))
+            jobs[0].schedule_removal(
+            )  # Schedule job to be removed and start new one in 3 seconds
+            context.job_queue.run_once(cleanup,
+                                       3,
+                                       user_id=user_id,
+                                       name=str(user_id))
             return
 
         await update.effective_message.reply_text(no_static_location_msg)
@@ -47,12 +52,16 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # If user has ended sharing live location, we need to clean up. Sometimes Telegram will give a different
     # live period value while ending the location.
-    if location.horizontal_accuracy and (not live_p or live_p not in LIVE_PERIODS):
+    if location.horizontal_accuracy and (not live_p
+                                         or live_p not in LIVE_PERIODS):
         # User has ended sharing live location manually
         # Remove the job and schedule a new one to be removed in 3 seconds
         print("ended sharing live location")
         context.job_queue.get_jobs_by_name(str(user_id))[0].schedule_removal()
-        context.job_queue.run_once(cleanup, 3, user_id=user_id, name=str(user_id))
+        context.job_queue.run_once(cleanup,
+                                   3,
+                                   user_id=user_id,
+                                   name=str(user_id))
         return
 
     # we add 5 seconds to the live_period, because the last update we get from Telegram
@@ -61,16 +70,15 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Schedule a job to run when the live location sharing ends
     if not context.job_queue.get_jobs_by_name(
-        str(user_id)
-    ):  # Don't schedule more than one job
+            str(user_id)):  # Don't schedule more than one job
         print("scheduling job")
-        context.job_queue.run_once(
-            cleanup, when_to_run, user_id=user_id, name=str(user_id)
-        )
+        context.job_queue.run_once(cleanup,
+                                   when_to_run,
+                                   user_id=user_id,
+                                   name=str(user_id))
 
-    chargers: list[dict] = await get_chargers(
-        location.latitude, location.longitude, context
-    )
+    chargers: list[dict] = await get_chargers(location.latitude,
+                                              location.longitude, context)
 
     # If user has started new live location, we need to share the list of chargers near them
     if "list_of_chargers" not in context.user_data:
@@ -84,10 +92,13 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if not context.user_data.get("no_chargers_found", False):
                 await update.effective_message.reply_text(no_chargers_near_you)
             context.user_data["no_chargers_found"] = True
+            # Let's remove the list of chargers since they are too far
+            context.user_data.pop("list_of_chargers", None)
             return
 
         msg = await update.effective_message.reply_text(
-            found_chargers_near_you.format(number_of_chargers=buttons_in_markup),
+            found_chargers_near_you.format(
+                number_of_chargers=buttons_in_markup),
             reply_markup=markup,
         )
         print("Found chargers near you")
@@ -114,7 +125,8 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id, message_id = context.user_data["editing_ids"]
     try:
         msg = await context.bot.edit_message_text(
-            text=found_chargers_near_you.format(number_of_chargers=length_of_markup),
+            text=found_chargers_near_you.format(
+                number_of_chargers=length_of_markup),
             chat_id=chat_id,
             message_id=message_id,
             reply_markup=markup,
@@ -128,23 +140,19 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def generate_markup(
-    chargers: list[dict], location: Location, context: ContextTypes.DEFAULT_TYPE
-) -> InlineKeyboardMarkup:
+        chargers: List[dict], location: Location,
+        context: ContextTypes.DEFAULT_TYPE) -> InlineKeyboardMarkup:
     """Generate inline keyboard markup for chargers, and also save the list of chargers 
     in user_data, by modifying context in place.
     """
 
     # cache the distance between the user and each charger
-    cached_distances = {
-        (i["lat"], i["lng"]): distance_in_km(
-            (location.latitude, location.longitude), (i["lat"], i["lng"])
-        )
-        for i in chargers
-    }
+    cached_distances = {(i["lat"], i["lng"]): distance_in_km(
+        (location.latitude, location.longitude), (i["lat"], i["lng"]))
+                        for i in chargers}
     # Drop chargers that are more than 20km away
     chargers = [
-        i
-        for i in chargers
+        i for i in chargers
         if cached_distances[(i["lat"], i["lng"])] <= MAX_DISTANCE_TO_SHOW
     ]
 
@@ -157,8 +165,7 @@ async def generate_markup(
             InlineKeyboardButton(
                 f"{i['name']} ({round(cached_distances[(i['lat'], i['lng'])], 2)}km)",
                 url=MAPS_LINK.format(lat=i["lat"], lng=i["lng"]),
-            )
-            for i in chargers[:MAX_CHARGERS_TO_SHOW]
+            ) for i in chargers[:MAX_CHARGERS_TO_SHOW]
         ],  # show only 12 chargers at once
     )
 
@@ -178,7 +185,8 @@ async def cleanup(context: ContextTypes.DEFAULT_TYPE, update: Update = None):
     context.user_data.pop("editing_ids", None)
     context.user_data.pop("no_chargers_found", None)
     if context.job:
-        await context.bot.send_message(context.job.user_id, ended_sharing_live_loc)
+        await context.bot.send_message(context.job.user_id,
+                                       ended_sharing_live_loc)
     elif update:
         await update.effective_message.reply_text(ended_sharing_live_loc)
     print("Cleaned up")
