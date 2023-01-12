@@ -2,3 +2,4 @@ files/token.txt
 files/api_key.txt
 .vscode/
 __pycache__/
+venv/

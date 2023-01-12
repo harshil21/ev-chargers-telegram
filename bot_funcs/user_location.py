@@ -104,6 +104,9 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print("Found chargers near you")
         context.user_data["editing_ids"] = (msg.chat_id, msg.message_id)
         context.user_data["no_chargers_found"] = False
+        # For stats:
+        live_locs = context.bot_data.setdefault("live_locs", 0)
+        context.bot_data["live_locs"] = live_locs + 1
         return
 
     # Check if we have a new charger near the user, that is not already in the list

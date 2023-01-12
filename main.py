@@ -6,12 +6,14 @@ from telegram.ext import (
     PicklePersistence,
 )
 
+import datetime as dtm
 import logging
 import os
 from pathlib import Path
 
 from bot_funcs.user_location import handle_location, cmd_cleanup
 from bot_funcs.help import help_cmd, start_cmd
+from bot_funcs.stats import get_stats, clear_stats
 
 
 logging.basicConfig(
@@ -37,6 +39,9 @@ def main():
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(MessageHandler(filters.LOCATION, handle_location))
     app.add_handler(CommandHandler("cleanup", cmd_cleanup))
+    app.add_handler(CommandHandler("stats", get_stats, filters.User([476269395, 1745589926])))
+
+    app.job_queue.run_daily(clear_stats, dtm.time(0, 0))
 
     app.run_polling()
 

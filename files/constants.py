@@ -1,11 +1,8 @@
 # Bot commands related strings
 
 help_msg = (
-    "This bot is used to find EV chargers near you. To use this bot, you must be authenticated. "
-    "Please use <code>/auth username password</code> to authenticate. Please send a live location"
-    " to begin."
+    "This bot is used to find EV chargers near you. To use this bot, you must send a live location."
 )
-
 
 # Location related strings
 
@@ -24,6 +21,11 @@ new_chargers_near_you = (
 already_sharing_live_loc = "You are already sharing your live location. Please end the previous session before starting a new one."
 
 ended_sharing_live_loc = "You have ended sharing live location."
+
+# Stats related strings
+
+bot_stats_str = "Number of times live location was shared today: <b>{live_locs}</b>\n" \
+                "Number of unique users who used the bot today: <b>{uniq_users}</b>."
 
 # Other strings
 
